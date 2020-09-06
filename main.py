@@ -1,11 +1,13 @@
 from Sacanner_js import Scanner
 
-a = "()"
+a = "\t _a5@\n 5 @ $)"
+
 
 analizadroJS = Scanner()
 
 analizadroJS.scannerJs(a)
-analizadroJS.showTokens()
+print(analizadroJS.showTokens())
+analizadroJS.showErrors()
 
 
 
