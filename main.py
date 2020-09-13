@@ -13,7 +13,24 @@ mañana
 "Esto es texto @ esto también ~ ^ "
 
 'esto también es una cadena '
-'pero esta no :v 
+'pero esta no :v
+
+//este es un comentario multilinea :v 
+
+/ //signo de división
+
+/*Comentario 
+multilinea hasta que 
+termine */
+
+/******otro comentario multi-
+linea para prueba
+a que si :v ********/
+
+/***************************
+**********para mas *********
+******que de malo tiene ****
+***************************/
 
 ~
 

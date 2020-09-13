@@ -40,7 +40,11 @@ class Scanner:
             2: self.state_2,
             3: self.state_3,
             5: self.state_5, 
-            7: self.state_7
+            7: self.state_7, 
+            9: self.state_9, 
+            10: self.state_10,
+            11: self.state_11, 
+            12: self.state_12
         }.get(state)
 
     #########-----------------STATE 0-------------------##########
@@ -94,7 +98,7 @@ class Scanner:
             self.output.append(" ")
         elif(inputStr == '/'):
             self.auxLex += inputStr
-            self.state = 8
+            self.state = 9
         elif(inputStr == '"'):
             self.auxLex += inputStr
             self.state = 5
@@ -176,7 +180,7 @@ class Scanner:
             self.auxLex += inputStr
             self.addToken(TokenType.CADENA_TEXTO, self.auxLex, self.row, self.column-1)
             self.auxLex = ""
-            self.sate = 0
+            self.state = 0
         elif inputStr == "\n": 
             self.addToken(TokenType.DESCONOCIDO, self.auxLex, self.row, self.column-1)
             self.state = 0
@@ -185,6 +189,56 @@ class Scanner:
             self.column -= 1
         else: 
             self.auxLex += inputStr
+
+    #########-----------------STATE 9-------------------#########
+    def state_9(self, inputStr): 
+        if inputStr == "/": 
+            self.auxLex += inputStr
+            self.state = 10
+        elif inputStr == "*": 
+            self.auxLex += inputStr
+            self.state = 11
+        else: 
+            self.addToken(TokenType.SIG_DIVIDIDO, self.auxLex, self.row, self. column -1)
+            self.state = 0
+            self.auxLex = ""
+            self.i -= 1
+            self.column -= 1
+    
+    #########-----------------STATE 10-------------------#########
+    def state_10(self, inputStr): 
+        if inputStr == "\n": 
+            self.addToken(TokenType.COMENTARIO_UNLINE, self.auxLex, self.row, self.column - 1)
+            self.auxLex = ""
+            self.state = 0
+            self.i -= 1
+            self.column -= 1
+        else: 
+            self.auxLex += inputStr
+
+    #########-----------------STATE 11-------------------#########
+    def state_11(self, inputStr):
+        if inputStr != "*":
+            if inputStr == "\n": 
+                self.row += 1
+            self.auxLex += inputStr
+
+        else: 
+            self.auxLex += inputStr
+            self.state = 12
+    
+    #########-----------------STATE 12 and 13-------------------#########
+    def state_12(self, inputStr): 
+        if inputStr != "/": 
+            #self.auxLex += inputStr
+            self.state = 11
+            self.i -= 1
+            self.column -= 1
+        else: 
+            self.auxLex += inputStr
+            self.addToken(TokenType.COMENTARIO_MULTILINEA, self.auxLex, self.row, self.column - 1)
+            self.auxLex = ""
+            self.state = 0
 
     ###Método para agregar los tokens a la lista
     def addToken(self, tokenType, lexeme, row, column):
