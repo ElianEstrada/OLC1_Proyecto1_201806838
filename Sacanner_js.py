@@ -11,6 +11,7 @@ class Scanner:
         self.auxLex = ""
         self.row = 1
         self.column = 1
+        self.flag = True
 
     def scannerJs(self, inputStr):
         self.inputStr2 = inputStr
@@ -26,17 +27,20 @@ class Scanner:
             
             c = inputStr[self.i]
 
-            self.switch(self.state, c)(c)
+            self.switch(self.state)(c)
 
             self.column += 1
             self.i += 1
 
     #simula un switch utilizando diccionarios
-    def switch(self, state, c):
+    def switch(self, state):
         return {
             0: self.state_0,
             1: self.state_1,
-            2: self.state_2 
+            2: self.state_2,
+            3: self.state_3,
+            5: self.state_5, 
+            7: self.state_7
         }.get(state)
 
     #########-----------------STATE 0-------------------##########
@@ -96,11 +100,12 @@ class Scanner:
             self.state = 5
         elif(inputStr == '\''):
             self.auxLex += inputStr 
-            self.state = 13
-        elif(re.match("[A-Za-z_]", inputStr)):
+            self.state = 7
+        elif(re.match("[A-Za-z_ñ]", inputStr)):
             self.auxLex += inputStr
             self.state = 1
         elif(inputStr.isdigit()):
+            self.flag = True
             self.auxLex += inputStr
             self.state = 2
         else: 
@@ -112,7 +117,7 @@ class Scanner:
 
     #########-----------------STATE 1-------------------#########
     def state_1(self, inputStr):
-        if(not re.match("[A-Za-z_0-9]", inputStr)):
+        if(not re.match("[A-Za-z_0-9ñ]", inputStr)):
             self.addToken(TokenType.IDENTIFICADORES, self.auxLex, self.row, self.column - 1)
             self.auxLex = ""
             self.state = 0
@@ -121,10 +126,11 @@ class Scanner:
             return
         self.auxLex += inputStr
 
-    #########-----------------STATE 2-------------------#########
+    #########-----------------STATE 2 and 4-------------------#########
     def state_2(self, inputStr): 
-        if(not inputStr.isdigit() and inputStr == '.'):
+        if(inputStr == '.' and self.flag):
             self.state = 3
+            self.auxLex += inputStr
         elif(inputStr.isdigit()):
             self.auxLex += inputStr
         else: 
@@ -134,7 +140,51 @@ class Scanner:
             self.i -= 1
             self.column -= 1
 
+    #########-----------------STATE 3-------------------#########
+    def state_3(self, inputStr): 
+        if(inputStr.isdigit()): 
+            self.state = 2
+            self.flag = False
+            self.i -= 1
+            self.column -= 1
+        else: 
+            self.addToken(TokenType.DESCONOCIDO, self.auxLex, self.row, self.column - 1)
+            self.auxLex = ""
+            self.state = 0
+            self.i -= 1
+            self.column -= 1
 
+    #########-----------------STATE 5 and 6-------------------#########
+    def state_5(self, inputStr): 
+        if inputStr == '"': 
+            self.auxLex += inputStr
+            self.addToken(TokenType.CADENA_TEXTO, self.auxLex, self.row, self.column -1)
+            self.state = 0
+            self.auxLex = ""
+        elif inputStr == "\n": 
+            self.addToken(TokenType.DESCONOCIDO, self.auxLex, self.row, self.column -1)
+            self.state = 0
+            self.auxLex = ""
+            self.i -= 1
+            self.column -= 1
+        else: 
+            self.auxLex += inputStr
+
+    #########-----------------STATE 7 and 8-------------------#########
+    def state_7(self, inputStr):
+        if inputStr == '\'': 
+            self.auxLex += inputStr
+            self.addToken(TokenType.CADENA_TEXTO, self.auxLex, self.row, self.column-1)
+            self.auxLex = ""
+            self.sate = 0
+        elif inputStr == "\n": 
+            self.addToken(TokenType.DESCONOCIDO, self.auxLex, self.row, self.column-1)
+            self.state = 0
+            self.auxLex = ""
+            self.i -= 1
+            self.column -= 1
+        else: 
+            self.auxLex += inputStr
 
     ###Método para agregar los tokens a la lista
     def addToken(self, tokenType, lexeme, row, column):
