@@ -20,8 +20,8 @@ class TokenType(Enum):
     LLAVES_CIERRA = 16
     PARENTESIS_ABRE = 17
     PARENTESIS_CIERRA = 18
-    SIG_AMPERSAN = 19
-    SIG_PLECA = 20
+    SIG_AND = 19
+    SIG_OR = 20
     SIG_COMA = 21
     SIG_PUNTO = 22
     SIG_COMILLAS_DOBLES = 23
@@ -68,8 +68,8 @@ class Token:
            TokenType.LLAVES_CIERRA: "LLAVES_CIERRA",
            TokenType.PARENTESIS_ABRE: "PARENTESIS_ABRE",
            TokenType.PARENTESIS_CIERRA: "PARENTESIS_CIERRA",
-           TokenType.SIG_AMPERSAN: "SIG_AMPERSAN",
-           TokenType.SIG_PLECA: "SIG_PLECA",
+           TokenType.SIG_AND: "SIG_AND",
+           TokenType.SIG_OR: "SIG_OR",
            TokenType.SIG_COMA: "COMA", 
            TokenType.SIG_PUNTO: "PUNTO",
            TokenType.SIG_COMILLAS_DOBLES: "COMILLAS_DOBLES",

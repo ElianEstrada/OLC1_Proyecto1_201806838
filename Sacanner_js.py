@@ -44,7 +44,9 @@ class Scanner:
             9: self.state_9, 
             10: self.state_10,
             11: self.state_11, 
-            12: self.state_12
+            12: self.state_12, 
+            14: self.state_14, 
+            16: self.state_16
         }.get(state)
 
     #########-----------------STATE 0-------------------##########
@@ -73,9 +75,11 @@ class Scanner:
         elif(inputStr == '!'): 
             self.addToken(TokenType.SIG_NEGACION, inputStr, self.row, self.column)
         elif(inputStr == '&'): 
-            self.addToken(TokenType.SIG_AMPERSAN, inputStr, self.row, self.column)
+            self.auxLex += inputStr
+            self.state = 14
         elif(inputStr == '|'): 
-            self.addToken(TokenType.SIG_PLECA, inputStr, self.row, self.column)
+            self.auxLex += inputStr
+            self.state = 16
         elif(inputStr == ';'): 
             self.addToken(TokenType.SIG_PUNTO_COMA, inputStr, self.row, self.column)
         elif(inputStr == ':'):
@@ -230,7 +234,6 @@ class Scanner:
     #########-----------------STATE 12 and 13-------------------#########
     def state_12(self, inputStr): 
         if inputStr != "/": 
-            #self.auxLex += inputStr
             self.state = 11
             self.i -= 1
             self.column -= 1
@@ -239,6 +242,34 @@ class Scanner:
             self.addToken(TokenType.COMENTARIO_MULTILINEA, self.auxLex, self.row, self.column - 1)
             self.auxLex = ""
             self.state = 0
+
+    #########-----------------STATE 14 and 15-------------------#########
+    def state_14(self, inputStr):
+        if inputStr != "&": 
+            self.addToken(TokenType.DESCONOCIDO, self.auxLex, self.row, self.column - 1)
+            self.auxLex = ""
+            self.state = 0
+            self.i -= 1
+            self.column -= 1
+        else: 
+            self.auxLex += inputStr
+            self.addToken(TokenType.SIG_AND, self.auxLex, self.row, self.column - 1)
+            self.state = 0
+            self.auxLex = ""
+
+    #########-----------------STATE 16 and 17-------------------#########
+    def state_16(self, inputStr): 
+        if inputStr != "|": 
+            self.addToken(TokenType.DESCONOCIDO, self.auxLex, self.row, self.column - 1)
+            self.auxLex = ""
+            self.state = 0
+            self.i -= 1
+            self.column -= 1
+        else: 
+            self.auxLex += inputStr
+            self.addToken(TokenType.SIG_OR, self.auxLex, self.row, self.column - 1)
+            self.state = 0
+            self.auxLex = ""
 
     ###Método para agregar los tokens a la lista
     def addToken(self, tokenType, lexeme, row, column):
