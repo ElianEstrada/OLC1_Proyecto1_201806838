@@ -1,6 +1,9 @@
 from Token_js import Token
 from Token_js import TokenType
 import re
+import os
+import pydot
+from subprocess import call
 
 
 class Scanner: 
@@ -12,6 +15,30 @@ class Scanner:
         self.row = 1
         self.column = 1
         self.flag = True
+        self.flagId = True
+        self.flagIdL = True
+        self.flagIdD = True
+        self.flagId_ = True
+        self.reservrdWords = [
+            "var",
+            "if",
+            "else",
+            "console", 
+            "log",
+            "for", 
+            "while",
+            "do", 
+            "continue", 
+            "return",
+            "break", 
+            "function",
+            "constructor", 
+            "this",
+            "class",
+            "math", 
+            "pow"
+        ]
+        self.reports = "digraph G{\nrankdir = LR\nnode[shape = circle]\nS0\n"
 
     def scannerJs(self, inputStr):
         self.inputStr2 = inputStr
@@ -112,6 +139,8 @@ class Scanner:
         elif(re.match("[A-Za-z_ñ]", inputStr)):
             self.auxLex += inputStr
             self.state = 1
+            if self.flagId: 
+                self.reports += "node[shape = doublecircle]\nS1\nS0->S1[label = L]\n"
         elif(inputStr.isdigit()):
             self.flag = True
             self.auxLex += inputStr
@@ -125,13 +154,40 @@ class Scanner:
 
     #########-----------------STATE 1-------------------#########
     def state_1(self, inputStr):
+        flag = True
         if(not re.match("[A-Za-z_0-9ñ]", inputStr)):
-            self.addToken(TokenType.IDENTIFICADORES, self.auxLex, self.row, self.column - 1)
+            for words in self.reservrdWords:
+                if self.auxLex.lower() == words: 
+                    self.addToken(TokenType.PALABRA_RESERVADA, self.auxLex, self.row, self.column - 1)
+                    flag = False
+                    break 
+            
+            if flag: 
+                self.addToken(TokenType.IDENTIFICADORES, self.auxLex, self.row, self.column - 1)
             self.auxLex = ""
             self.state = 0
             self.i -= 1
             self.column -= 1
+            if self.flagId: 
+                self.reports += "}"
+                print(self.reports)
+                with open("../Reports/ERID.dot", 'w') as report:
+                    report.write(self.reports)
+                #self.reports.Dot().write_png("graph.png", prog = "dot")
+                call(["dot", "-Tpdf", "../Reports/ERID.dot", "-o", "../Reports/ERID.pdf"])
+            self.flagId = False
+            self.reports = "digraph G{\nrankdir = LR\nnode[shape = circle]\nS0\n"
             return
+        
+        if re.match("[A-Za-z]", inputStr) and self.flagIdL: 
+            self.reports += "S1->S1 [label = L]\n"
+            self.flagIdL = False
+        elif re.match("[0-9]", inputStr) and self.flagIdD:
+            self.reports += "S1->S1 [label = D]\n"
+            self.flagIdD = False
+        elif re.match("_", inputStr) and self.flagId_: 
+            self.reports += "S1->S1 [label = _]\n"
+            self.flagId_ = False
         self.auxLex += inputStr
 
     #########-----------------STATE 2 and 4-------------------#########
@@ -147,6 +203,7 @@ class Scanner:
             self.state = 0
             self.i -= 1
             self.column -= 1
+            self.flag = False
 
     #########-----------------STATE 3-------------------#########
     def state_3(self, inputStr): 
@@ -287,7 +344,7 @@ class Scanner:
                     cadena += " "
             elif not tokens.getTokenType() == "DESCONOCIDO":          
                 cadena += tokens.getLexeme()
-                #print(f"Lexeme: {tokens.getLexeme()}; TokenType: {tokens.getTokenType()}; row: {tokens.getRow()}; column: {tokens.getColumn()}")
+                print(f"Lexeme: {tokens.getLexeme()}; TokenType: {tokens.getTokenType()}; row: {tokens.getRow()}; column: {tokens.getColumn()}")
 
         return cadena
 
