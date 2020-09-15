@@ -15,7 +15,7 @@ a = '''
     */
     body{font: 76% ari*al,sans-serif; 
         background-image: url("/home/documents/picture.png");
-        background: 0 0 0 0.2rem
+        background: 0 0 0 0.20rem
     }
     p{ margin:0 10px 10px}
     a{

@@ -1,8 +1,6 @@
 from Token_css import Token
 from Token_css import TokenType
 import re
-import os
-import pydot
 from subprocess import call
 
 
@@ -34,6 +32,7 @@ class Scanner:
             "math", 
             "pow"
         ]
+        self.reports = ""
 
     def scannerCss(self, inputStr):
         self.inputStr2 = inputStr
@@ -70,29 +69,41 @@ class Scanner:
     #########-----------------STATE 0-------------------##########
     #Recibe el caracter en la posición i
     def state_0(self, inputStr):
-        if(inputStr == '('): 
+        if(inputStr == '('):
+            self.reports += f"S0; S0; {inputStr}\n" 
             self.addToken(TokenType.PARENTESIS_ABRE, inputStr, self.row, self.column)
         elif(inputStr == ')'):
+            self.reports += f"S0; S0; {inputStr}\n"
             self.addToken(TokenType.PARENTESIS_CIERRA, inputStr, self.row, self.column)
         elif(inputStr == '{'): 
+            self.reports += f"S0; S0; {inputStr}\n"
             self.addToken(TokenType.LLAVES_ABRE, inputStr, self.row, self.column)
         elif(inputStr == '}'):
+            self.reports += f"S0; S0; {inputStr}\n"
             self.addToken(TokenType.LLAVES_CIERRA, inputStr, self.row, self.column)
         elif(inputStr == '-'): 
+            self.reports += f"S0; S0; {inputStr}\n"
             self.addToken(TokenType.SIG_MENOS, inputStr, self.row, self.column)
         elif(inputStr == '*'): 
+            self.reports += f"S0; S0; {inputStr}\n"
             self.addToken(TokenType.OP_UNIVERSAL, inputStr, self.row, self.column)
         elif(inputStr == ';'): 
+            self.reports += f"S0; S0; {inputStr}\n"
             self.addToken(TokenType.SIG_PUNTO_COMA, inputStr, self.row, self.column)
         elif(inputStr == ':'):
+            self.reports += f"S0; S0; {inputStr}\n"
             self.addToken(TokenType.SIG_DOS_PUTNOS , inputStr, self.row, self.column)
         elif(inputStr == ','):
+            self.reports += f"S0; S0; {inputStr}\n"
             self.addToken(TokenType.SIG_COMA, inputStr, self.row, self.column)
         elif(inputStr == '.'):
+            self.reports += f"S0; S0; {inputStr}\n"
             self.addToken(TokenType.SIG_PUNTO, inputStr, self.row, self.column)
         elif(inputStr == "#"): 
+            self.reports += f"S0; S0; {inputStr}\n"
             self.addToken(TokenType.SIG_NUMERAL, inputStr, self.row, self.column)
         elif(inputStr == "%"): 
+            self.reports += f"S0; S0; {inputStr}\n"
             self.addToken(TokenType.SIG_PORCENTAJE, inputStr, self.row, self.column)
         elif(inputStr == '\n'): 
             self.row += 1
@@ -105,24 +116,26 @@ class Scanner:
             #self.column += 1
             self.output.append(" ")
         elif(inputStr == '/'):
+            self.reports += f"S0; S7; {inputStr}\n"
             self.auxLex += inputStr
             self.state = 7
         elif(inputStr == '"'):
+            self.reports += f"S0; S5; {inputStr}\n"
             self.auxLex += inputStr
             self.state = 5
-        elif(inputStr == '\''):
-            self.auxLex += inputStr 
-            self.state = 7
         elif(re.match("[A-Za-z-ñ]", inputStr)):
+            self.reports += f"S0; S1; {inputStr}\n"
             self.auxLex += inputStr
             self.state = 1
         elif(inputStr.isdigit()):
             self.flag = True
+            self.reports += f"S0; S2; {inputStr}\n"
             self.auxLex += inputStr
             self.state = 2
         else: 
             if(inputStr == '$' and self.i == len(self.inputStr2)): 
                 print("Analysis Finished")
+                print(self.reports)
             else: 
                 self.addToken(TokenType.DESCONOCIDO, inputStr, self.row, self.column)
                 self.auxLex = ""
@@ -144,15 +157,21 @@ class Scanner:
             self.i -= 1
             self.column -= 1
             return
+        self.reports += f"S1; S1; {inputStr}\n"
         self.auxLex += inputStr
 
     #########-----------------STATE 2 and 4-------------------#########
     def state_2(self, inputStr): 
         if(inputStr == '.' and self.flag):
             self.state = 3
+            self.reports += f"S2; S3; {inputStr}\n"
             self.auxLex += inputStr
         elif(inputStr.isdigit()):
             self.auxLex += inputStr
+            if self.flag: 
+                self.reports += f"S2; S2; {inputStr}\n"
+            else: 
+                self.reports += f"S4; S4; {inputStr}\n"
         else: 
             self.addToken(TokenType.NUMERO, self.auxLex, self.row, self.column - 1)
             self.auxLex = ""
@@ -165,9 +184,9 @@ class Scanner:
     def state_3(self, inputStr): 
         if(inputStr.isdigit()): 
             self.state = 2
+            self.reports += f"S3; S4; {inputStr}\n"
+            self.auxLex += inputStr
             self.flag = False
-            self.i -= 1
-            self.column -= 1
         else: 
             self.addToken(TokenType.DESCONOCIDO, self.auxLex, self.row, self.column - 1)
             self.auxLex = ""
@@ -208,8 +227,14 @@ class Scanner:
         if inputStr != "*":
             if inputStr == "\n": 
                 self.row += 1
+                self.column = 1
+            if inputStr == "$" and self.i == len(self.inputStr2): 
+                self.addToken(TokenType.DESCONOCIDO, self.auxLex, self.row, self. column -1)
+                self.state = 0
+                self.auxLex = ""
+                self.i -= 1
+                self.column -= 1
             self.auxLex += inputStr
-
         else: 
             self.auxLex += inputStr
             self.state = 9

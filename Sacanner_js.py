@@ -2,7 +2,6 @@ from Token_js import Token
 from Token_js import TokenType
 import re
 import os
-import pydot
 from subprocess import call
 
 
@@ -282,6 +281,7 @@ class Scanner:
         if inputStr != "*":
             if inputStr == "\n": 
                 self.row += 1
+                self.column = 1
             self.auxLex += inputStr
 
         else: 
