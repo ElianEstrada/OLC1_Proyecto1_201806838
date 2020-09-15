@@ -1,43 +1,81 @@
 from tkinter import Tk, Menu, messagebox, filedialog, ttk, Label, scrolledtext, INSERT, END, Button, Scrollbar, RIGHT, Y, Frame, Canvas, HORIZONTAL, VERTICAL, simpledialog
 #from tkinter import Tk
-from Sacanner_js import Scanner
+from Sacanner_js import Scanner as js
+from Scanner_css import Scanner as css
 
 
 a = '''
 
-
-class_02 MiClase02 {
-
-    this.name = "Elian";
-    this.ege = 20;
-
-    if (ege == 20){
-        console.log (this.name + " tu edad es de: " + this.ege);
+    html,body{
+ ¬      margin:0;
+        padding:0
     }
-    else {
-        console.log ("no tienes la edad suficiente");
+    /*
+            Entrada archivo css
+    */
+    body{font: 76% ari*al,sans-serif; 
+        background-image: url("/home/documents/picture.png");
+        background: 0 0 0 0.2rem
+    }
+    p{ margin:0 10px 10px}
+    a{
+        display:block;
+        color: #981793; $
+        padding:10px;
+    }
+    div#header h1{
+        height:80px;
+        line-height:80px;
+        12margin:0;
+        padding-left:10px;
+        background: #EEE;
+        color: #79B30B;
     }
 
-    Function myFunction(a, b, c){
-        console.Log("esta es mi funcion");
-        flag = true
-        while(flag){
-            if this.ege == 10{
-                flag = false
-            }
-        }
 
+    div#content p{line-height:1.4}
+    div#navigation{background:#B9CAFF}
+    div#ex?tra{background:#FF8539}
+    div#footer{
+        background: #333;
+        color: #FFF
+    }
+    div=footer p{
+        margin:0;padding:5px 10px
     }
 
-}
+    div#wrapper{        float:left;width:100%       }
+    div#content{margin: 0 25%}
+    div#navigation{
+        float:left;
+        width:25%;
+        margin-left:-100%
+    }
+    div#extra{
+        float:left;/* :) */width:25%;
+        margin-left:-25%
+    }
+    div#footer{
+        clear:left;
+        width:100%;
+    }                   
+    /*
+    Errores lexicos en las lineas: 2,8,15,21,30,35,57,59,61
+    */
+    div>footer{
+        clear:left;
+        width:100% * 180 / 190.5px + 5;
+    }
+°
+/* y acá :'(
 
 '''
 
-analizadroJS = Scanner()
+analizadorCss = css()
 
-analizadroJS.scannerJs(a)
-print(analizadroJS.showTokens())
-analizadroJS.showErrors()
+analizadorCss.scannerCss(a)
+print(analizadorCss.showTokens())
+analizadorCss.showErrors()
 
 #contador = 0
 
