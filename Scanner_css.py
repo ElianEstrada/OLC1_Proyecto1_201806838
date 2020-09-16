@@ -14,23 +14,55 @@ class Scanner:
         self.column = 1
         self.flag = True
         self.reservrdWords = [
-            "var",
-            "if",
-            "else",
-            "console", 
-            "log",
-            "for", 
-            "while",
-            "do", 
-            "continue", 
-            "return",
-            "break", 
-            "function",
-            "constructor", 
-            "this",
-            "class",
-            "math", 
-            "pow"
+            "color",
+            "border", 
+            "text-align",
+            "font-weight", 
+            "padding-left", 
+            "padding-top", 
+            "line-height", 
+            "margin-top", 
+            "margin-left", 
+            "display", 
+            "top", 
+            "float", 
+            "min-width", 
+            "background-color", 
+            "Opacity", 
+            "font-family", 
+            "font-size", 
+            "padding-right", 
+            "padding", 
+            "width", 
+            "margin-right", 
+            "margin", 
+            "position", 
+            "right", 
+            "clear",
+            "max-height", 
+            "background-image", 
+            "background", 
+            "font-style", 
+            "font", 
+            "padding-bottom", 
+            "height", 
+            "margin-bottom", 
+            "border-style", 
+            "bottom", 
+            "left", 
+            "max-width", 
+            "min-height", 
+            "px", 
+            "em", 
+            "relative", 
+            "inline-block", 
+            "rgba", 
+            "url", 
+            "content", 
+            "inherit", 
+            "solid", 
+            "absolute", 
+            "rem"
         ]
         self.reports = ""
 
@@ -118,6 +150,7 @@ class Scanner:
         elif(inputStr == '/'):
             self.reports += f"S0; S7; {inputStr}\n"
             self.auxLex += inputStr
+            self.flag = True
             self.state = 7
         elif(inputStr == '"'):
             self.reports += f"S0; S5; {inputStr}\n"
@@ -198,6 +231,7 @@ class Scanner:
     def state_5(self, inputStr): 
         if inputStr == '"': 
             self.auxLex += inputStr
+            self.reports += f"S5, S6, {inputStr}\n"
             self.addToken(TokenType.CADENA_TEXTO, self.auxLex, self.row, self.column -1)
             self.state = 0
             self.auxLex = ""
@@ -208,12 +242,14 @@ class Scanner:
             self.i -= 1
             self.column -= 1
         else: 
+            self.reports += f"S5, S5, {inputStr}\n"
             self.auxLex += inputStr
 
     #########-----------------STATE 7-------------------#########
     def state_7(self, inputStr): 
         if inputStr == "*": 
             self.auxLex += inputStr
+            self.reports += f"S7, S8, {inputStr}\n"
             self.state = 8
         else: 
             self.addToken(TokenType.DESCONOCIDO, self.auxLex, self.row, self. column -1)
@@ -235,18 +271,26 @@ class Scanner:
                 self.i -= 1
                 self.column -= 1
             self.auxLex += inputStr
+            if self.flag: 
+                self.reports += f"S8, S8, {inputStr}\n"
+            else: 
+                self.reports += f"S9, S8, {inputStr}\n"
+                self.flag = True
         else: 
             self.auxLex += inputStr
+            self.reports += f"S8, S9, {inputStr}\n"
             self.state = 9
     
     #########-----------------STATE 9 and 10-------------------#########
     def state_9(self, inputStr): 
         if inputStr != "/": 
             self.state = 8
+            self.flag = False
             self.i -= 1
             self.column -= 1
         else: 
             self.auxLex += inputStr
+            self.reports += f"S9, S10, {inputStr}\n"
             self.addToken(TokenType.COMENTARIO_MULTILINEA, self.auxLex, self.row, self.column - 1)
             self.auxLex = ""
             self.state = 0
