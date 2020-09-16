@@ -2,22 +2,23 @@ from tkinter import Tk, Menu, messagebox, filedialog, ttk, Label, scrolledtext, 
 #from tkinter import Tk
 from Sacanner_js import Scanner as js
 from Scanner_css import Scanner as css
+from Scanner_html import Scanner as html
+
 
 
 a = '''
 
-/******esto es un 
-comentario multi
-linea perros :v 
-@ para que lo sepan :v*
-******************/
+<!--Este es el inicio del documento-->
+<html>
+<!--este es el fin del documento --> 
+
 '''
 
-analizadorCss = css()
+analizadorhtml = html()
 
-analizadorCss.scannerCss(a)
-print(analizadorCss.showTokens())
-analizadorCss.showErrors()
+analizadorhtml.scannerHtml(a)
+print(analizadorhtml.showTokens())
+analizadorhtml.showErrors()
 
 #contador = 0
 
