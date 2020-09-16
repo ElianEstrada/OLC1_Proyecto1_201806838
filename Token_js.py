@@ -58,7 +58,7 @@ class Token:
            TokenType.SIG_IGUAL: "SIG_IGUAL",
            TokenType.SIG_MULTIPLICACION: "SIG_MULTIPLICACION",
            TokenType.SIG_MAS: "SIG_MAS",
-           TokenType.SIG_MENOR_QUE: "SIG_MENOS",
+           TokenType.SIG_MENOS: "SIG_MENOS",
            TokenType.SIG_DIVIDIDO: "SIG_DIVIDIDO",
            TokenType.SIG_PUNTO_COMA: "PUNTO_Y_COMA",
            TokenType.SIG_MAYOR_QUE: "SIG_MAYOR_QUE",
