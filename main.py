@@ -5,18 +5,133 @@ from Scanner_css import Scanner as css
 from Scanner_exp import ScannerExp
 from Scanner_html import Scanner as html
 from Parser_exp import Parser
+import os
 
 #########------------Functions for GUI---------------##########
 
 fileInput = ""
+rowCount = 1
+columnCount = 1
+string = ""
 
 def new(): 
     txtInput.delete(1.0, END)
 
-def open(): 
+def openFile(): 
     global fileInput
     fileInput = filedialog.askopenfile(title = "Abrir Archivo")
-    print(fileInput)
+
+    fileText = open(fileInput.name)
+    text = fileText.read()
+
+    txtInput.delete(1.0, END)
+    txtInput.insert(INSERT, text)
+    positionPush()
+    fileText.close()
+
+def exit():
+    value = messagebox.askokcancel("Salir", "Está seguro que desea salir?")
+    if value: 
+        root.destroy()
+
+def save_as(): 
+    global fileInput
+
+    save = filedialog.asksaveasfile(title = "Guardar Archivo")
+    with open(save.name, "w+") as fileSave:
+        fileSave.write(txtInput.get(1.0, END))
+    fileInput = save.name
+
+def save():
+    global fileInput
+
+    if fileInput == "": 
+        save_as()
+    else: 
+        with open(fileInput.name, "w") as fileSave: 
+            fileSave.write(txtInput.get(1.0, END))
+
+def analize(): 
+    global fileInput
+    global string
+
+    pathName, fileExtension = os.path.splitext(fileInput.name)
+    fileName = pathName.split("/")
+    print(fileName[-1],fileExtension)
+    if fileExtension == ".js": 
+        print("Js")
+        analizerJs = js()
+        analizerJs.scannerJs(txtInput.get(1.0, END))
+        print(analizerJs.showTokens(fileName[-1]))
+        txtOutput.delete(1.0, END)
+        txtOutput.insert(INSERT, analizerJs.showErrors())
+    elif fileExtension == ".css":  
+        print("css")
+        analizerCss = css()
+        analizerCss.scannerCss(txtInput.get(1.0, END))
+        string = analizerCss.showTokens(fileName[-1])
+        txtOutput.delete(1.0, END)
+        txtOutput.insert(INSERT, analizerCss.showErrors())
+    elif fileExtension == ".html": 
+        print("html")
+        analizerHtml = html()
+        analizerHtml.scannerHtml(txtInput.get(1.0, END))
+        print(analizerHtml.showTokens(fileName[-1]))
+        txtOutput.delete(1.0, END)
+        txtOutput.insert(INSERT, analizerHtml.showErrors())
+    elif fileExtension == ".rmt": 
+        print("rmt")
+        analizerExp = ScannerExp()
+        parser = Parser(analizerExp.scannerExp(txtInput.get(1.0, END)))
+        print(parser)
+    else: 
+        messagebox.showwarning("Aclaración", "La extensión no cumple con ninguna de las definidas :'(")
+
+def current_row(flag): 
+    global rowCount
+    if flag: 
+        rowCount += 1
+        lblRow2.config(text = rowCount)
+    else: 
+        rowCount -= 1
+        lblRow2.config(text = rowCount)
+
+def current_column(flag): 
+    global columnCount
+    if flag: 
+        columnCount += 1
+        lblColumn2.config(text = columnCount)
+    else: 
+        columnCount -= 1
+        lblColumn2.config(text = columnCount)
+
+def position(e): 
+    if e.keysym == "Up": 
+        current_row(False)
+    elif e.keysym == "Down": 
+        current_row(True)
+    elif e.keysym == "Left": 
+        current_column(False)
+    elif e.keysym == "Right": 
+        current_column(True)
+    elif e.keysym == "Return": 
+        current_row(True)
+
+def positionPush(e = None): 
+    global rowCount
+    global columnCount
+    #messagebox.showinfo("hola", e.keysym)
+
+    positions = txtInput.index("current").split('.')
+    lblRow2.config(text = positions[0])
+    rowCount = int(positions[0])
+    column = int(positions[1]) + 1
+    columnCount = column
+    lblColumn2.config(text = column)
+
+def cssReport(): 
+    txtOutput.delete(1.0, END)
+    txtOutput.insert(INSERT, string)
 
 
 #########------------GUI---------------##########
@@ -34,14 +149,14 @@ myFrame.config(bg = "#0079cc", width = "920", height = "20")
 lblRow = Label(myFrame, text = "Row: ", fg = "white", bg = "#0079cc")
 lblRow.grid(row = 0, column = 0)
 
-lblRow2 = Label(myFrame, text= "0", fg="white", bg= "#0079cc")
+lblRow2 = Label(myFrame, text= rowCount, fg="white", bg= "#0079cc")
 lblRow2.grid(row = 0, column = 1)
 
 ##-------Label for column------##
 lblColumn = Label(myFrame, text = "Column: ", fg = "white", bg = "#0079cc")
 lblColumn.grid(row = 0, column = 3)
 
-lblColumn2 = Label(myFrame, text= "0", fg="white", bg= "#0079cc")
+lblColumn2 = Label(myFrame, text= columnCount, fg="white", bg= "#0079cc")
 lblColumn2.grid(row = 0, column = 4)
 
 ##-------Main Frame------##
@@ -67,7 +182,7 @@ lblOutput.grid(row = 1, column = 2)
 
 ##-------Button for Analizer------##
 btnAnalizer = Button(myFrame2, text = "Analizar", fg = "white", bg = "#0079cc", width = "15", height = "1")
-btnAnalizer.config(font = ("Arial", 16))
+btnAnalizer.config(font = ("Arial", 16), command = analize)
 btnAnalizer.grid(row = 2, column = 1)
 
 ##-------Bar Menú------##
@@ -76,23 +191,29 @@ barMenu = Menu(root)
 ##-------File Menu------##
 fileMenu = Menu(barMenu, tearoff = 0)
 fileMenu.add_command(label = "Nuevo", command = new)
-fileMenu.add_command(label = "Abrir", command = open)
+fileMenu.add_command(label = "Abrir", command = openFile)
+fileMenu.add_command(label = "Guardar...", command = save)
+fileMenu.add_command(label = "Guardar Como...", command= save_as)
 fileMenu.add_separator()
-fileMenu.add_command(label = "Salir", command = root.quit)
+fileMenu.add_command(label = "Salir", command = exit)
 barMenu.add_cascade(label = "Archivos", menu= fileMenu)
 
 ##-------Reports Menu------##
 reportMenu = Menu(barMenu, tearoff = 0)
+reportMenu.add_command(label = "Reporte de Css", command = cssReport)
 reportMenu.add_separator()
 barMenu.add_cascade(label =  "Reportes", menu = reportMenu)
 
 ##-------Text Area for Input--------##
-txtInput = scrolledtext.ScrolledText(myFrame2, wrap = WORD, width = 50, height = 30)
+txtInput = scrolledtext.ScrolledText(myFrame2, wrap = WORD, width = 60, height = 30)
 txtInput.focus()
-txtInput.grid(row = 2, column = 0)
+txtInput.grid(row = 2, column = 0, pady = 24, padx= 20)
+txtInput.bind("<Button>", positionPush)
+txtInput.bind("<KeyRelease>", position)
 ##-------Text Area for Output--------##
-txtOutput = scrolledtext.ScrolledText(myFrame2, wrap = WORD, width = 50, height = 30, state= "disabled")
-txtOutput.grid(row = 2, column = 2)
+txtOutput = scrolledtext.ScrolledText(myFrame2, wrap = WORD, width = 60, height = 30)
+txtOutput.bind("<Key>", lambda a: "break")
+txtOutput.grid(row = 2, column = 2, pady = 24, padx= 20)
 
 root.config(menu = barMenu)
 

@@ -2,8 +2,10 @@ from Token_js import Token
 from Token_js import TokenType
 import re
 import os
+import platform 
 from subprocess import call
 
+pathFile = ""
 
 class Scanner: 
 
@@ -170,10 +172,22 @@ class Scanner:
             if self.flagId: 
                 self.reports += "}"
                 print(self.reports)
-                with open("../Reports/ERID.dot", 'w') as report:
+                path = ""
+                system = platform.system()
+                print(system)
+                if system == "Linux": 
+                    path = self.output[2].getLexeme().split(':')
+                elif system == "Windows": 
+                    path = self.output[0].getLexeme().split(':')
+                global pathFile 
+
+                splitPath = path[1].lower().split("output")
+                pathFile = "/output" + splitPath[1]
+                os.makedirs(f"..{pathFile}", exist_ok = True)
+                with open(f"..{pathFile}/ERID.dot", 'w') as report:
                     report.write(self.reports)
                 #self.reports.Dot().write_png("graph.png", prog = "dot")
-                call(["dot", "-Tpdf", "../Reports/ERID.dot", "-o", "../Reports/ERID.pdf"])
+                call(["dot", "-Tpdf", f"..{pathFile}/ERID.dot", "-o", f"..{pathFile}/ERID.pdf"])
             self.flagId = False
             self.reports = "digraph G{\nrankdir = LR\nnode[shape = circle]\nS0\n"
             return
@@ -333,7 +347,7 @@ class Scanner:
         self.output.append(Token(tokenType, lexeme, row, column))
 
     ###Método para mostrar la lista de tokens
-    def showTokens(self):
+    def showTokens(self, fileName):
         cadena = ""
         for tokens in self.output:
             if(tokens == "\n"): 
@@ -344,6 +358,11 @@ class Scanner:
                     cadena += " "
             elif not tokens.getTokenType() == "DESCONOCIDO":          
                 cadena += tokens.getLexeme()
+                global pathFile
+
+                with open(f"..{pathFile}/{fileName}.js", "w") as clearFile: 
+                    clearFile.write(cadena)
+
                 print(f"Lexeme: {tokens.getLexeme()}; TokenType: {tokens.getTokenType()}; row: {tokens.getRow()}; column: {tokens.getColumn()}")
 
         return cadena
@@ -351,13 +370,27 @@ class Scanner:
     ###Método para mostrar los errores lexicos
     def showErrors(self): 
         count = 0
+        outErrors = ""
+        htmlReport = "<html>\n\t<head>\n\t<title> Errors Lexicos de Js </title>\n\t"
+        htmlReport += "<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css\">"
+        htmlReport += "</head>\n<body bgcolor = \"#202020\" text = \"white\" class = \"container\">\n <h1> <center> Errores Lexicos </center> </h1>\n <div class = \"card z-depth-5\"><table border = \"1\" class = \"striped grey darken-4\">\n <tr>\n<th> No </th>\n"
+        htmlReport += "<th> Fila </th>\n <th> Columna </th>\n<th> Lexema </th>\n<th> Tipo de Token </th>\n</tr>\n"
         for tokens in self.output:
             if(tokens == "\n" or tokens == "\t" or tokens == " "):
                 continue
             elif(tokens.getTokenType() == "DESCONOCIDO"):
                 count += 1
-                print(f"Lexeme: {tokens.getLexeme()}; TokenType: {tokens.getTokenType()}; row: {tokens.getRow()}; column: {tokens.getColumn()}")
+                htmlReport += f"<tr>\n<td> {count} </td>\n<td> {tokens.getRow()} </td>\n<td> {tokens.getColumn()} </td>\n<td> {tokens.getLexeme()} </td>\n<td> {tokens.getTokenType()} </td>\n</tr>\n"
+                outErrors +=  f"Lexeme: {tokens.getLexeme()}; TokenType: {tokens.getTokenType()}; row: {tokens.getRow()}; column: {tokens.getColumn()}\n"
+        htmlReport += "</div></table>\n</body>\n</html>"
 
-        if(count == 0): 
-            print("there are not lexical erros") 
+        global pathFile
+
+        with open(f"..{pathFile}/ErroresLexicosJs.html", "w+") as clearFile: 
+            clearFile.write(htmlReport)
+
+        if outErrors == "": 
+            return "there are not lexical erros" 
+        else: 
+            return outErrors
                     

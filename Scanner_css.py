@@ -1,9 +1,11 @@
 from Token_css import Token
 from Token_css import TokenType
 import re
+import platform 
+import os
 from subprocess import call
 
-
+pathFile = ""
 class Scanner: 
 
     def __init__(self):
@@ -300,8 +302,22 @@ class Scanner:
         self.output.append(Token(tokenType, lexeme, row, column))
 
     ###Método para mostrar la lista de tokens
-    def showTokens(self):
+    def showTokens(self, fileName):
         cadena = ""
+        path = ""
+        system = platform.system()
+        print(system)
+        if system == "Linux": 
+            path = self.output[2].getLexeme().split(':')
+        elif system == "Windows": 
+            path = self.output[0].getLexeme().split(':')
+        global pathFile 
+
+        splitPath = path[1].lower().split("output")
+        moreSplitPath = splitPath[1].split('*')
+        pathFile = "/output" + moreSplitPath[0]
+        os.makedirs(f"..{pathFile}", exist_ok = True)
+
         for tokens in self.output:
             if(tokens == "\n"): 
                 cadena += "\n"
@@ -313,17 +329,31 @@ class Scanner:
                 cadena += tokens.getLexeme()
                 print(f"Lexeme: {tokens.getLexeme()}; TokenType: {tokens.getTokenType()}; row: {tokens.getRow()}; column: {tokens.getColumn()}")
 
-        return cadena
+        with open(f"..{pathFile}/{fileName}.css", "w") as clearFile: 
+            clearFile.write(cadena)
+
+        return self.reports
 
     ###Método para mostrar los errores lexicos
     def showErrors(self): 
         count = 0
+        outErrors = ""
+        htmlReport = "<html>\n\t<head>\n\t<title> Errors Lexicos de Css </title>\n\t"
+        htmlReport += "<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css\">"
+        htmlReport += "</head>\n<body bgcolor = \"#202020\" text = \"white\" class = \"container\">\n <h1> <center> Errores Lexicos </center> </h1>\n <div class = \"card z-depth-5\"><table border = \"1\" class = \"striped grey darken-4\">\n <tr>\n<th> No </th>\n"
+        htmlReport += "<th> Fila </th>\n <th> Columna </th>\n<th> Lexema </th>\n<th> Tipo de Token </th>\n</tr>\n"
         for tokens in self.output:
             if(tokens == "\n" or tokens == "\t" or tokens == " "):
                 continue
             elif(tokens.getTokenType() == "DESCONOCIDO"):
                 count += 1
-                print(f"Lexeme: {tokens.getLexeme()}; TokenType: {tokens.getTokenType()}; row: {tokens.getRow()}; column: {tokens.getColumn()}")
+                htmlReport += f"<tr>\n<td> {count} </td>\n<td> {tokens.getRow()} </td>\n<td> {tokens.getColumn()} </td>\n<td> {tokens.getLexeme()} </td>\n<td> {tokens.getTokenType()} </td>\n</tr>\n"
+                outErrors += f"Lexeme: {tokens.getLexeme()}; TokenType: {tokens.getTokenType()}; row: {tokens.getRow()}; column: {tokens.getColumn()}\n"
+        htmlReport += "</div></table>\n</body>\n</html>"
+        with open(f"..{pathFile}/ErroresLexicosCss.html", "w+") as clearFile: 
+            clearFile.write(htmlReport)
 
-        if(count == 0): 
-            print("there are not lexical erros") 
+        if outErrors == "": 
+            return "No hay errores lexicos"
+        else: 
+            return outErrors
