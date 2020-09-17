@@ -3,15 +3,19 @@ from Token_exp import Token
 
 class Parser:
 
-    def __init__(self, inputStr):
-        self.inputStr = inputStr
+    def __init__(self):
+        self.inputStr = []
         self.syntacticErros = []
         self.indice = 0
         #print(self.inputStr.values)
+        
+    def Start(self, inputStr): 
+        self.inputStr = inputStr
         if(self.inputStr != []):
             self.inputStr.append(Token(TokenType.DESCONOCIDO, "#", 0,0))
             self.preAnalysis = self.inputStr[self.indice]
             self.Expression()
+            return self.syntacticErros
         else:
             print("No hay nada que analizar")
 

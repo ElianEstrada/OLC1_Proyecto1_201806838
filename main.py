@@ -13,6 +13,7 @@ fileInput = ""
 rowCount = 1
 columnCount = 1
 string = ""
+pathFileJs = ""
 
 def new(): 
     txtInput.delete(1.0, END)
@@ -54,6 +55,7 @@ def save():
 def analize(): 
     global fileInput
     global string
+    global pathFileJs
 
     pathName, fileExtension = os.path.splitext(fileInput.name)
     fileName = pathName.split("/")
@@ -62,7 +64,7 @@ def analize():
         print("Js")
         analizerJs = js()
         analizerJs.scannerJs(txtInput.get(1.0, END))
-        print(analizerJs.showTokens(fileName[-1]))
+        pathFileJs = analizerJs.showTokens(fileName[-1])
         txtOutput.delete(1.0, END)
         txtOutput.insert(INSERT, analizerJs.showErrors())
     elif fileExtension == ".css":  
@@ -81,8 +83,35 @@ def analize():
         txtOutput.insert(INSERT, analizerHtml.showErrors())
     elif fileExtension == ".rmt": 
         print("rmt")
+        count = 0
+        row = 0
+        htmlReport = "<html>\n\t<head>\n\t<title> Errors Sintácticos </title>\n\t"
+        htmlReport += "<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css\">"
+        htmlReport += "</head>\n<body bgcolor = \"#202020\" text = \"white\" class = \"container\">\n <h1> <center> Errores Lexicos </center> </h1>\n <div class = \"card z-depth-5\"><table border = \"1\" class = \"striped grey darken-4\">\n <tr>\n<th> No </th>\n"
+        htmlReport += "<th> Fila </th>\n<th> Expresión </th>\n<th> Análisis </th>\n</tr>\n"
+
         analizerExp = ScannerExp()
-        parser = Parser(analizerExp.scannerExp(txtInput.get(1.0, END)))
+        expresions = txtInput.get(1.0, END).split("\n")
+        parser = Parser()
+        for exp in expresions:
+            count += 1
+            result = parser.Start(analizerExp.scannerExp(exp))
+            if result == []:
+                row += 1
+                htmlReport += f"<tr>\n<td> {count} </td>\n<td> {row} </td>\n<td> {exp} </td>\n<td> Correcto </td>\n</tr>\n"
+                print("Correcto")
+            elif result != None: 
+                row += 1
+                print("Incorrecto")
+                htmlReport += f"<tr>\n<td> {count} </td>\n<td> {row} </td>\n<td> {exp} </td>\n<td> Incorrecto </td>\n</tr>\n"
+            else: 
+                row += 1
+
+        htmlReport += "</div></table>\n</body>\n</html>"
+
+        with open(f"..{pathFileJs}/AnalisisSintactico.html", "w+") as clearFile: 
+            clearFile.write(htmlReport)
+
         print(parser)
     else: 
         messagebox.showwarning("Aclaración", "La extensión no cumple con ninguna de las definidas :'(")

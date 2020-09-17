@@ -20,6 +20,11 @@ class Scanner:
         self.flagIdL = True
         self.flagIdD = True
         self.flagId_ = True
+        self.flagDigit = True
+        self.flagDigitD1 = True
+        self.flagDigitD2 = True
+        self.flagString = True
+        self.flagStringC = True
         self.reservrdWords = [
             "var",
             "if",
@@ -134,6 +139,8 @@ class Scanner:
         elif(inputStr == '"'):
             self.auxLex += inputStr
             self.state = 5
+            if self.flagString: 
+                self.reports += "S0->S5 [label = \"\\\"\"]\n"
         elif(inputStr == '\''):
             self.auxLex += inputStr 
             self.state = 7
@@ -146,6 +153,8 @@ class Scanner:
             self.flag = True
             self.auxLex += inputStr
             self.state = 2
+            if self.flagDigit: 
+                self.reports += "node[shape = doublecircle]\nS2\nS0->S2[label = D]\n"
         else: 
             if(inputStr == '#' and self.i == len(self.inputStr2)): 
                 print("Analysis Finished")
@@ -184,7 +193,7 @@ class Scanner:
                 splitPath = path[1].lower().split("output")
                 pathFile = "/output" + splitPath[1]
                 os.makedirs(f"..{pathFile}", exist_ok = True)
-                with open(f"..{pathFile}/ERID.dot", 'w') as report:
+                with open(f"..{pathFile}/ERID.dot", 'w+') as report:
                     report.write(self.reports)
                 #self.reports.Dot().write_png("graph.png", prog = "dot")
                 call(["dot", "-Tpdf", f"..{pathFile}/ERID.dot", "-o", f"..{pathFile}/ERID.pdf"])
@@ -208,15 +217,49 @@ class Scanner:
         if(inputStr == '.' and self.flag):
             self.state = 3
             self.auxLex += inputStr
+            if self.flagDigit:  
+                self.reports += "node[shape = circle]\nS3\nS2->S3 [label = \".\"]\n"
         elif(inputStr.isdigit()):
             self.auxLex += inputStr
+            if self.flagDigitD1 and self.flag:  
+                self.reports += "S2->S2 [label = D]\n"
+                self.flagDigitD1 = False
+            elif self.flagDigitD2: 
+                self.reports += "S4->S4 [label = D]\n"
+                self.flagDigitD2 = False
+
         else: 
+            global pathFile
             self.addToken(TokenType.NUMERO, self.auxLex, self.row, self.column - 1)
             self.auxLex = ""
             self.state = 0
             self.i -= 1
             self.column -= 1
             self.flag = False
+            if self.flagDigit:
+                self.reports += "}" 
+
+                if pathFile == "": 
+                    path = ""
+                    system = platform.system()
+                    print(system)
+                    if system == "Linux": 
+                        path = self.output[2].getLexeme().split(':')
+                    elif system == "Windows": 
+                        path = self.output[0].getLexeme().split(':')
+                
+
+                    splitPath = path[1].lower().split("output")
+                    pathFile = "/output" + splitPath[1]
+                    os.makedirs(f"..{pathFile}", exist_ok = True)
+
+                with open(f"..{pathFile}/ERNum.dot", 'w+') as report:
+                    report.write(self.reports)
+                #self.reports.Dot().write_png("graph.png", prog = "dot")
+                call(["dot", "-Tpdf", f"..{pathFile}/ERNum.dot", "-o", f"..{pathFile}/ERNum.pdf"])
+            self.flagDigit = False
+            self.reports = "digraph G{\nrankdir = LR\nnode[shape = circle]\nS0\n"
+
 
     #########-----------------STATE 3-------------------#########
     def state_3(self, inputStr): 
@@ -225,12 +268,15 @@ class Scanner:
             self.flag = False
             self.i -= 1
             self.column -= 1
+            if self.flagDigit: 
+                self.reports += "node[shape = doublecircle]\nS4\nS3->S4 [label = D]"
         else: 
             self.addToken(TokenType.DESCONOCIDO, self.auxLex, self.row, self.column - 1)
             self.auxLex = ""
             self.state = 0
             self.i -= 1
             self.column -= 1
+            self.reports = "digraph G{\nrankdir = LR\nnode[shape = circle]\nS0\n"
 
     #########-----------------STATE 5 and 6-------------------#########
     def state_5(self, inputStr): 
@@ -239,14 +285,44 @@ class Scanner:
             self.addToken(TokenType.CADENA_TEXTO, self.auxLex, self.row, self.column -1)
             self.state = 0
             self.auxLex = ""
+            global pathFile
+            if self.flagString:
+                self.reports += "node[shape = doublecircle]\nS6\nS5->S6 [label = \"\\\"\"]\n}"
+
+                if pathFile == "": 
+                    path = ""
+                    system = platform.system()
+                    print(system)
+                    if system == "Linux": 
+                        path = self.output[2].getLexeme().split(':')
+                    elif system == "Windows": 
+                        path = self.output[0].getLexeme().split(':')
+                
+
+                    splitPath = path[1].lower().split("output")
+                    pathFile = "/output" + splitPath[1]
+                    os.makedirs(f"..{pathFile}", exist_ok = True)
+
+                with open(f"..{pathFile}/ERText.dot", 'w+') as report:
+                    report.write(self.reports)
+                #self.reports.Dot().write_png("graph.png", prog = "dot")
+                call(["dot", "-Tpdf", f"..{pathFile}/ERText.dot", "-o", f"..{pathFile}/ERText.pdf"])
+            self.flagString = False
+            self.reports = "digraph G{\nrankdir = LR\nnode[shape = circle]\nS0\n"
+
         elif inputStr == "\n": 
             self.addToken(TokenType.DESCONOCIDO, self.auxLex, self.row, self.column -1)
             self.state = 0
             self.auxLex = ""
             self.i -= 1
             self.column -= 1
+            self.reports = "digraph G{\nrankdir = LR\nnode[shape = circle]\nS0\n"
+
         else: 
             self.auxLex += inputStr
+            if self.flagStringC: 
+                self.reports += "S5->S5 [label = \"L|D|S\"]\n"
+                self.flagStringC = False
 
     #########-----------------STATE 7 and 8-------------------#########
     def state_7(self, inputStr):
@@ -365,7 +441,7 @@ class Scanner:
 
                 print(f"Lexeme: {tokens.getLexeme()}; TokenType: {tokens.getTokenType()}; row: {tokens.getRow()}; column: {tokens.getColumn()}")
 
-        return cadena
+        return pathFile
 
     ###Método para mostrar los errores lexicos
     def showErrors(self): 
